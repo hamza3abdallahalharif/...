@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Taste the Culture: Food Challenge</title>
+  <link rel="icon" type="image/png" href="25.png" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    .flags {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+    }
+
+    .flags img {
+      width: 80px;
+      height: auto;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+    }
+
+    .input-area {
+      margin: 20px 0;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1em;
+      width: 200px;
+      margin: 0 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background-color: #00c292;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #009874;
+    }
+
+    .teams {
+      display: flex;
+      justify-content: center;
+      gap: 100px;
+      margin: 20px 0;
+    }
+
+    .team {
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    .turn-indicator {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 100px;
+      margin-bottom: 30px;
+    }
+
+    .score {
+      background-color: #00c292;
+      color: white;
+      font-size: 2em;
+      padding: 15px 30px;
+      border-radius: 12px;
+      min-width: 120px;
+      text-align: center;
+      font-weight: bold;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .tile {
+      background: #008080;
+      color: #fff;
+      padding: 30px;
+      font-size: 1.5em;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .tile:hover {
+      background: #006666;
+    }
+
+    .tile.answered {
+      background: #aaa;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .question-box {
+      display: none;
+      background: #fff;
+      color: #333;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin: 30px auto;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .answer-text {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .instructions {
+      max-width: 800px;
+      margin: 20px auto;
+      font-size: 1em;
+      background: #e6f8f2;
+      padding: 15px;
+      border-left: 5px solid #00c292;
+      border-radius: 10px;
+      text-align: left;
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Taste the Culture</h1>
+  <h2>Food Challenge: Team vs Team</h2>
+
+  <div class="flags">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fe/Flag_of_Egypt.svg" alt="Egypt Flag" />
+    <img src="https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg" alt="France Flag" />
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="teamAInput" placeholder="Team A Name" />
+    <input type="text" id="teamBInput" placeholder="Team B Name" />
+    <button onclick="setTeamNames()">Start Game</button>
+  </div>
+
+  <div class="teams">
+    <div class="team" id="teamA">Team A</div>
+    <div class="team" id="teamB">Team B</div>
+  </div>
+
+  <div class="turn-indicator" id="turnInfo">Current Turn: Team A</div>
+
+  <div class="scoreboard">
+    <div id="scoreA" class="score">0</div>
+    <div id="scoreB" class="score">0</div>
+  </div>
+
+  <div class="instructions">
+    <strong>How to Play:</strong>
+    <ul>
+      <li>Each team takes turns answering a food-related question.</li>
+      <li>Click on any tile to reveal a question.</li>
+      <li>Type your answer and press Submit.</li>
+      <li>Points are awarded for correct answers. Special tiles can cause swaps or resets!</li>
+      <li>The team with the highest score at the end wins!</li>
+    </ul>
+  </div>
+
+  <div class="grid" id="tilesGrid"></div>
+
+  <div class="question-box" id="questionBox">
+    <h2 id="questionText"></h2>
+    <input type="text" id="userAnswer" placeholder="Type your answer here..." />
+    <button onclick="revealAnswer()">Submit</button>
+    <div class="answer-text" id="answerText"></div>
+    <button onclick="closeQuestion()">Close</button>
+  </div>
+
+  <div class="footer">
+    Made by Hamza Alsharif © 2025
+  </div>
+
+  <script>
+    const questions = [
+      { q: "Which country is famous for Koshari?", a: "Egypt", points: 25 },
+      { q: "Where did Tacos originate?", a: "Mexico", points: 25 },
+      { q: "Ratatouille is from which country?", a: "France", points: 25 },
+      { q: "Main ingredient in Guacamole?", a: "Avocado", points: 25 },
+      { q: "Cuisine of Ful Medames?", a: "Egyptian", points: 25 },
+      { q: "Butter crescent pastry from France?", a: "Croissant", points: 50 },
+      { q: "Spicy Mexican sauce?", a: "Salsa", points: 50 },
+      { q: "Traditional French bread?", a: "Baguette", points: 25 },
+      { q: "Rice + Lentils dish in Egypt?", a: "Koshari", points: 25 },
+      { q: "Flat Mexican bread?", a: "Tortilla", points: 25 },
+      { q: "French creamy dessert?", a: "Crème brûlée", points: 50 },
+      { q: "Mexican corn husk meal?", a: "Tamale", points: 50 },
+      { q: "Dish with snails?", a: "Escargot", points: 75 },
+      { q: "Egyptian soup with jute leaves?", a: "Molokhia", points: 50 },
+      { q: "Cheese in quesadilla?", a: "Oaxaca", points: 50 },
+      { q: "French blue cheese?", a: "Roquefort", points: 75 },
+      { q: "Egyptian honey dessert?", a: "Basbousa", points: 50 },
+      { q: "Crepe with Nutella?", a: "Sweet crepe", points: 25 },
+      { q: "Bread for Day of the Dead?", a: "Pan de muerto", points: 75 },
+      { q: "French long bread?", a: "Baguette", points: 25 },
+      { q: "Power-Up: Other team gets 25 points", a: "POWERUP25", points: 0 },
+      { q: "Power-Up: Swap scores", a: "SWAP", points: 0 },
+      { q: "Power-Up: Reset all scores", a: "RESET", points: 0 },
+      { q: "Famous drink made from hibiscus?", a: "Karkade", points: 25 },
+      { q: "Traditional French onion soup?", a: "Onion soup", points: 25 },
+      { q: "What is Harissa?", a: "Spicy sauce", points: 25 },
+      { q: "Dessert made from dates in Egypt?", a: "Maamoul", points: 50 },
+      { q: "Mexican chocolate drink?", a: "Champurrado", points: 50 },
+      { q: "Famous Egyptian fish dish?", a: "Sayadeya", points: 50 },
+      { q: "French dish cooked in wine?", a: "Coq au vin", points: 75 },
+      { q: "Tamarind juice is popular in?", a: "Egypt", points: 25 },
+    ];
+
+    let currentTeam = 'A';
+    let currentQuestionIndex = 0;
+    let teamScores = { A: 0, B: 0 };
+    const answeredTiles = new Set();
+
+    function createTiles() {
+      const grid = document.getElementById("tilesGrid");
+      questions.forEach((_, i) => {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.textContent = i + 1;
+        tile.onclick = () => showQuestion(i, tile);
+        grid.appendChild(tile);
+      });
+    }
+
+    function showQuestion(index, tile) {
+      if (answeredTiles.has(index)) return;
+      currentQuestionIndex = index;
+      document.getElementById("questionText").textContent = questions[index].q;
+      document.getElementById("questionBox").style.display = "block";
+      document.getElementById("userAnswer").value = "";
+      document.getElementById("answerText").textContent = "";
+      tile.classList.add("answered");
+      answeredTiles.add(index);
+    }
+
+    function revealAnswer() {
+      const userInput = document.getElementById("userAnswer").value.trim().toLowerCase();
+      const q = questions[currentQuestionIndex];
+      let feedback = "";
+
+      if (userInput === "idk") {
+        feedback = "❌ You gave up. No points.";
+      } else if (q.a === "POWERUP25") {
+        teamScores[currentTeam === "A" ? "B" : "A"] += 25;
+        feedback = "💥 Power-Up! Other team gains 25 points.";
+      } else if (q.a === "SWAP") {
+        [teamScores.A, teamScores.B] = [teamScores.B, teamScores.A];
+        feedback = "🔁 Points swapped!";
+      } else if (q.a === "RESET") {
+        teamScores.A = 0;
+        teamScores.B = 0;
+        feedback = "🚫 All scores reset!";
+      } else if (userInput === q.a.toLowerCase()) {
+        teamScores[currentTeam] += q.points;
+        feedback = `✅ Correct! +${q.points} points.`;
+      } else {
+        feedback = `❌ Wrong. Correct answer: ${q.a}`;
+      }
+
+      document.getElementById("scoreA").textContent = teamScores.A;
+      document.getElementById("scoreB").textContent = teamScores.B;
+      document.getElementById("answerText").textContent = feedback;
+      currentTeam = currentTeam === 'A' ? 'B' : 'A';
+      document.getElementById("turnInfo").textContent = "Current Turn: Team " + currentTeam;
+    }
+
+    function closeQuestion() {
+      document.getElementById("questionBox").style.display = "none";
+      if (answeredTiles.size === questions.length) {
+        let winner = "";
+        if (teamScores.A > teamScores.B) winner = document.getElementById("teamA").textContent;
+        else if (teamScores.B > teamScores.A) winner = document.getElementById("teamB").textContent;
+        else winner = "It's a tie!";
+        alert("Game Over! Winner: " + winner);
+      }
+    }
+
+    function setTeamNames() {
+      const a = document.getElementById("teamAInput").value || "Team A";
+      const b = document.getElementById("teamBInput").value || "Team B";
+      document.getElementById("teamA").textContent = a;
+      document.getElementById("teamB").textContent = b;
+    }
+
+    window.onload = createTiles;
+  </script>
+</body>
+</html>
